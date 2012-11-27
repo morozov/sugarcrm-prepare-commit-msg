@@ -16,13 +16,13 @@ then
 fi
 
 # exit if we're not on a bug branch
-if [ -z "$(echo "$BRANCH" | egrep '^bug[0-9]+$')" ]
+if [ -z "$(echo "$BRANCH" | egrep '^bug[0-9]+')" ]
 then
     exit;
 fi
 
 # parse bug number from branch name
-NUMBER=$(echo $BRANCH | sed -e "s/^bug//")
+NUMBER=$(echo $BRANCH | sed -e "s/^bug\([0-9]*\).*/\1/")
 
 # retrieve bug commit message
 ssc get-bug-commit-message $NUMBER > $1
