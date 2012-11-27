@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ -z "$(which ssc)" ]
+then
+    echo "SugarCRM SOAP client is not installed"
+    exit 1;
+fi
+
+# determine current Git branch
+BRANCH=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/');
+
+# exit if we're in headless state
+if [ "$BRANCH" = "(no branch)" ]
+then
+    exit;
+fi
+
+# exit if we're not on a bug branch
+if [ -z "$(echo "$BRANCH" | egrep '^bug[0-9]+$')" ]
+then
+    exit;
+fi
+
+# parse bug number from branch name
+NUMBER=$(echo $BRANCH | sed -e "s/^bug//")
+
+# retrieve bug commit message
+ssc get-bug-commit-message $NUMBER > $1
