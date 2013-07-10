@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# if message specified explicitly, exit
+if [ "$2" ]
+then
+    exit
+fi
+
 if [ -z "$(which ssc)" ]
 then
     echo "SugarCRM SOAP client is not installed"
