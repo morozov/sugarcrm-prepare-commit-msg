@@ -25,4 +25,10 @@ fi
 NUMBER=$(echo $BRANCH | sed -e "s/^bug\([0-9]*\).*/\1/")
 
 # retrieve bug commit message
-ssc get-bug-commit-message $NUMBER > $1
+MESSAGE=`ssc get-bug-commit-message $NUMBER`
+if [ $? != 0 ]
+then
+    exit $?;
+fi
+
+echo $MESSAGE > $1
