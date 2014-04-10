@@ -6,12 +6,6 @@ then
     exit
 fi
 
-if [ -z "$(which ssc)" ]
-then
-    echo "SugarCRM SOAP client is not installed"
-    exit 1;
-fi
-
 # determine current Git branch
 BRANCH=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/');
 
@@ -21,20 +15,41 @@ then
     exit;
 fi
 
-# exit if we're not on a bug branch
-if [ -z "$(echo "$BRANCH" | egrep '^bug[0-9]+')" ]
+# check if it's SugarInternal bug
+if [ "$(echo "$BRANCH" | egrep '^bug[0-9]+')" ]
 then
-    exit;
+    if [ -z "$(which ssc)" ]
+    then
+        echo "SugarCRM SOAP client is not installed"
+        exit 1;
+    fi
+
+    # parse bug number from branch name
+    NUMBER=$(echo $BRANCH | sed -e "s/^bug\([0-9]*\).*/\1/")
+
+    echo "Retrieving bug subject from SugarInternal..." >&2
+
+    # retrieve bug commit message
+    MESSAGE=`ssc get-bug-commit-message $NUMBER`
+    if [ $? != 0 ]
+    then
+        exit $?;
+    fi
+
+    echo $MESSAGE > $1
 fi
 
-# parse bug number from branch name
-NUMBER=$(echo $BRANCH | sed -e "s/^bug\([0-9]*\).*/\1/")
-
-# retrieve bug commit message
-MESSAGE=`ssc get-bug-commit-message $NUMBER`
-if [ $? != 0 ]
+# check if it's Jira issue
+if [ "$(echo "$BRANCH" | egrep '^[A-Z]+\-[0-9]+')" ]
 then
-    exit $?;
-fi
+    echo "Retrieving $BRANCH summary from Jira..." >&2
 
-echo $MESSAGE > $1
+    # retrieve issue commit message
+    MESSAGE=`~/Projects/jira-issue-summary/jira-issue-summary "$BRANCH"`
+    if [ $? != 0 ]
+    then
+        exit $?;
+    fi
+
+    echo $MESSAGE > $1
+fi
